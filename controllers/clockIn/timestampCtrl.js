@@ -41,7 +41,7 @@ const timestampCtrl = {
 
   postTimestamp: async (req, res) => {
     try {
-      const { id, timestampType, imageURL, computername } = req.body;
+      const { id, timestampType, imageURL } = req.body;
 
       await mssql.query`
         INSERT INTO timestamps (timestampType, imageURL,createdAt, userId)
@@ -49,9 +49,11 @@ const timestampCtrl = {
       `;
 
       const timestamps = await mssql.query`
-        SELECT TOP 1 * 
-        FROM timestamps 
-        WHERE userId = ${id} 
+        SELECT TOP 1 timestamps.createdAt, timestamps.id, timestamps.timestampType, timestamps.imageURL, users.displayName
+        FROM timestamps
+        LEFT JOIN users
+        ON timestamps.userId = users.id
+        WHERE userId = ${id}
         ORDER BY createdAt DESC
       `;
 
