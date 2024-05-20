@@ -30,18 +30,30 @@ const authCtrl = {
 
       const { distinguishedName, ...userAD } = LDAPUser;
 
+      const userNo = await mssql.query`
+        SELECT dbo.fMP_get_employee_nr_by_user_ad(${userAD.sAMAccountName}) userNo
+      `;
+
+      console.log(userNo.recordsets[0][0].userNo);
+
+      if (!userNo.recordsets[0][0].userNo) {
+        return resStatusMsg(res, 400, {
+          message: "user number does not exist!",
+        });
+      }
+
       const checkUser =
         await mssql.query`SELECT COUNT(*) AS count FROM users WHERE username = ${userAD.sAMAccountName}`;
 
       if (checkUser.recordset[0].count === 0) {
         await mssql.query`
-            INSERT INTO users (username, displayName, department, title, mail, createdAt)
-            VALUES (${userAD.sAMAccountName}, ${userAD.displayName}, ${userAD.department}, ${userAD.title}, ${userAD.mail}, GETDATE())
+            INSERT INTO users (no, username, displayName, department, title, mail, createdAt)
+            VALUES (${userNo.recordsets[0][0].userNo}, ${userAD.sAMAccountName}, ${userAD.displayName}, ${userAD.department}, ${userAD.title}, ${userAD.mail}, GETDATE())
           `;
       } else if (checkUser.recordset[0].count === 1) {
         await mssql.query`
             UPDATE users
-            SET username = ${userAD.sAMAccountName}, displayName = ${userAD.displayName}, department = ${userAD.department}, title = ${userAD.title}, mail = ${userAD.mail}, createdAt = GETDATE()
+            SET no = ${userNo.recordsets[0][0].userNo}, username = ${userAD.sAMAccountName}, displayName = ${userAD.displayName}, department = ${userAD.department}, title = ${userAD.title}, mail = ${userAD.mail}, createdAt = GETDATE()
             WHERE username = ${userAD.sAMAccountName}
           `;
       }

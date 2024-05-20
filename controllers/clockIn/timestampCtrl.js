@@ -1,5 +1,7 @@
 const mssql = require("mssql");
 const { resStatusMsg } = require("../../lib/utils");
+const fs = require("node:fs");
+const path = require("path");
 
 const timestampCtrl = {
   getTimestamps: async (req, res) => {
@@ -44,12 +46,12 @@ const timestampCtrl = {
       const { id, timestampType, imageURL } = req.body;
 
       await mssql.query`
-        INSERT INTO timestamps (timestampType, imageURL,createdAt, userId)
-        VALUES (${timestampType}, ${imageURL}, GETDATE(), ${id})
+        INSERT INTO timestamps (timestampType, imageURL, upload, createdAt, userId)
+        VALUES (${timestampType}, ${imageURL}, 'false', GETDATE(), ${id})
       `;
 
       const timestamps = await mssql.query`
-        SELECT TOP 1 timestamps.createdAt, timestamps.id, timestamps.timestampType, timestamps.imageURL, users.displayName
+        SELECT TOP 1 timestamps.createdAt, timestamps.id, timestamps.timestampType, timestamps.imageURL, users.displayName, users.no
         FROM timestamps
         LEFT JOIN users
         ON timestamps.userId = users.id
