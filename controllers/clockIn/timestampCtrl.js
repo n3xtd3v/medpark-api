@@ -1,7 +1,5 @@
 const mssql = require("mssql");
 const { resStatusMsg } = require("../../lib/utils");
-const fs = require("node:fs");
-const path = require("path");
 
 const timestampCtrl = {
   getTimestamps: async (req, res) => {
@@ -43,7 +41,11 @@ const timestampCtrl = {
 
   postTimestamp: async (req, res) => {
     try {
-      const { id, timestampType, imageURL } = req.body;
+      const { id, timestampType, imageURL, no } = req.body;
+
+      if (!no) {
+        return resStatusMsg(res, 400, { message: "User number does exist!" });
+      }
 
       await mssql.query`
         INSERT INTO timestamps (timestampType, imageURL, upload, createdAt, userId)

@@ -34,14 +34,6 @@ const authCtrl = {
         SELECT dbo.fMP_get_employee_nr_by_user_ad(${userAD.sAMAccountName}) userNo
       `;
 
-      console.log(userNo.recordsets[0][0].userNo);
-
-      if (!userNo.recordsets[0][0].userNo) {
-        return resStatusMsg(res, 400, {
-          message: "user number does not exist!",
-        });
-      }
-
       const checkUser =
         await mssql.query`SELECT COUNT(*) AS count FROM users WHERE username = ${userAD.sAMAccountName}`;
 
@@ -76,6 +68,7 @@ const authCtrl = {
         access_token,
         user: {
           id: user.recordset[0].id,
+          no: userNo.recordset[0].userNo || "",
           username: user.recordset[0].username,
           displayName: user.recordset[0].displayName,
           department: user.recordset[0].department,
@@ -128,6 +121,7 @@ const authCtrl = {
             access_token,
             user: {
               id: user.recordset[0].id,
+              no: user.recordset[0].no,
               username: user.recordset[0].username,
               displayName: user.recordset[0].displayName,
               department: user.recordset[0].department,
